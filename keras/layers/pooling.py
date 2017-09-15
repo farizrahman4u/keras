@@ -444,7 +444,7 @@ class _GlobalPooling1D(Layer):
     def compute_output_shape(self, input_shape):
         return (input_shape[0], input_shape[2])
 
-    def call(self, inputs):
+    def call(self, inputs, mask=None):
         raise NotImplementedError
 
 
@@ -456,11 +456,14 @@ class GlobalAveragePooling1D(_GlobalPooling1D):
 
     # Output shape
         2D tensor with shape:
-        `(batch_size, channels)`
+        `(batch_size, features)`
     """
 
-    def call(self, inputs):
-        return K.mean(inputs, axis=1)
+    def call(self, inputs, mask=None):
+        if mask:
+            return K.sum(inputs * mask, axis=1) / K.sum(mask, axis=1)
+        else:
+            return K.mean(inputs, axis=1)
 
 
 class GlobalMaxPooling1D(_GlobalPooling1D):
@@ -471,10 +474,13 @@ class GlobalMaxPooling1D(_GlobalPooling1D):
 
     # Output shape
         2D tensor with shape:
-        `(batch_size, channels)`
+        `(batch_size, features)`
     """
 
-    def call(self, inputs):
+    def call(self, inputs, mask=None):
+        if mask:
+            minimum = K.repeat(K.min(inputs, axis=1), K.shape(inputs)[1])
+            inputs = K.switch(mask, inputs, minimum)
         return K.max(inputs, axis=1)
 
 
@@ -494,7 +500,7 @@ class _GlobalPooling2D(Layer):
         else:
             return (input_shape[0], input_shape[1])
 
-    def call(self, inputs):
+    def call(self, inputs, mask=None):
         raise NotImplementedError
 
     def get_config(self):
