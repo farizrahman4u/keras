@@ -68,7 +68,7 @@ if not os.path.exists(_config_path):
 # Set backend based on KERAS_BACKEND flag, if applicable.
 if 'KERAS_BACKEND' in os.environ:
     _backend = os.environ['KERAS_BACKEND']
-    assert _backend in {'theano', 'tensorflow', 'cntk'}
+    assert _backend in {'theano', 'tensorflow', 'cntk', 'torch'}
     _BACKEND = _backend
 
 # Import backend functions.
@@ -81,6 +81,9 @@ elif _BACKEND == 'theano':
 elif _BACKEND == 'tensorflow':
     sys.stderr.write('Using TensorFlow backend.\n')
     from .tensorflow_backend import *
+elif _BACKEND == 'torch':
+	sys.stderr.write('Using Torch backend.\n')
+	from ktorch.backend import *
 else:
     raise ValueError('Unknown backend: ' + str(_BACKEND))
 
