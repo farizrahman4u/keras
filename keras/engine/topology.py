@@ -22,6 +22,8 @@ from ..utils.layer_utils import count_params
 from ..utils.generic_utils import has_arg
 from ..utils import conv_utils
 from ..legacy import interfaces
+from ..backend import SymbolicTensor
+
 
 try:
     import h5py
@@ -538,7 +540,22 @@ class Layer(object):
         """
         return inputs
 
+
     def __call__(self, inputs, **kwargs):
+        inputs = _to_list(inputs)
+        symbolic = False
+        for x in inputs:
+            if type(x) is SymbolicTensor:
+                symbolic = True
+                break
+        if symbolic:
+            num_outputs = getattr(self, 'num_outputs', None)
+            return SymbolicTensor(self, inputs=inputs, num_outputs=num_outputs, **kwargs)
+        return self.___call___(inputs, **kwargs)
+
+
+
+    def ___call___(self, inputs, **kwargs):
         """Wrapper around self.call(), for handling internal references.
 
         If a Keras tensor is passed:
@@ -563,6 +580,7 @@ class Layer(object):
             ValueError: in case the layer is missing shape information
                 for its `build` call.
         """
+
         if isinstance(inputs, list):
             inputs = inputs[:]
         with K.name_scope(self.name):
@@ -616,13 +634,15 @@ class Layer(object):
             # Actually call the layer, collecting output(s), mask(s), and shape(s).
             output = self.call(inputs, **kwargs)
             output_mask = self.compute_mask(inputs, previous_mask)
-
+            '''
             # If the layer returns tensors from its inputs, unmodified,
             # we copy them to avoid loss of tensor metadata.
             output_ls = _to_list(output)
             inputs_ls = _to_list(inputs)
             output_ls_copy = []
+            print(output_ls)
             for x in output_ls:
+                print(x)
                 if x in inputs_ls:
                     x = K.identity(x)
                 output_ls_copy.append(x)
@@ -630,7 +650,8 @@ class Layer(object):
                 output = output_ls_copy[0]
             else:
                 output = output_ls_copy
-
+            '''
+            output_ls = _to_list(output)
             # Inferring the output shape is only relevant for Theano.
             if all([s is not None for s in _to_list(input_shape)]):
                 output_shape = self.compute_output_shape(input_shape)

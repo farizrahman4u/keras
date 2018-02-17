@@ -84,7 +84,7 @@ elif _BACKEND == 'tensorflow':
     from .tensorflow_backend import *
 elif _BACKEND == 'torch':
 	sys.stderr.write('Using Torch backend.\n')
-	from ktorch.backend import *
+	from .torch_backend import *
 else:
     raise ValueError('Unknown backend: ' + str(_BACKEND))
 
