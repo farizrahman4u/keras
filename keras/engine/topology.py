@@ -542,18 +542,20 @@ class Layer(object):
 
 
     def __call__(self, inputs, **kwargs):
-        inputs = _to_list(inputs)
-        symbolic = False
-        for x in inputs:
-            if type(x) is SymbolicTensor:
-                symbolic = True
-                break
+        if type(inputs) is SymbolicTensor:
+            symbolic = True
+        elif type(inputs) is list:
+            symbolic = False
+            for x in inputs:
+                if type(x) is SymbolicTensor:
+                    symbolic = True
+                    break
+        else:
+            symbolic = False
         if symbolic:
             num_outputs = getattr(self, 'num_outputs', None)
             return SymbolicTensor(self, inputs=inputs, num_outputs=num_outputs, **kwargs)
         return self.___call___(inputs, **kwargs)
-
-
 
     def ___call___(self, inputs, **kwargs):
         """Wrapper around self.call(), for handling internal references.
