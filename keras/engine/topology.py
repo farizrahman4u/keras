@@ -540,7 +540,6 @@ class Layer(object):
         """
         return inputs
 
-
     def __call__(self, inputs, **kwargs):
         if type(inputs) is SymbolicTensor:
             symbolic = True
